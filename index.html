@@ -110,7 +110,7 @@
             color: var(--text-light);
             font-size: 0.9rem;
         }
-        .input-group input {
+        .input-group input:not([type="radio"]) {
             width: 90%;
             padding: 10px;
             margin-bottom: 15px;
@@ -127,20 +127,16 @@
             outline: none;
         }
         
-        /* Estilos para el selector de Envío/Retiro */
+        /* Estilos para los selectores de Envío/Retiro y Pago */
         .option-selector {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             margin-bottom: 20px;
+            flex-wrap: wrap; /* Permite que se envuelva en pantallas pequeñas */
         }
-
-        .option-selector input[type="radio"] {
-            display: none;
-        }
-
         .option-selector label {
             flex: 1;
-            padding: 12px;
+            padding: 10px;
             text-align: center;
             border-radius: 8px;
             border: 2px solid var(--text-dark);
@@ -148,8 +144,11 @@
             font-weight: 700;
             color: var(--text-dark);
             transition: all 0.3s;
+            min-width: 100px; /* Para que no se achique demasiado */
         }
-
+        .option-selector input[type="radio"] {
+            display: none;
+        }
         .option-selector input[type="radio"]:checked + label {
             background-color: var(--secondary);
             border-color: var(--secondary);
@@ -157,7 +156,13 @@
             box-shadow: 0 0 10px var(--secondary);
         }
 
+        /* Estilo específico para pedir cambio en efectivo */
+        #changeInputGroup {
+            transition: all 0.3s;
+        }
+
         /* --- MODAL GENERAL Y COMPONENTES (MANTENIDOS) --- */
+        /* [Omitiendo código de Modal/Carrito/Toast para enfocar en la lógica de pago/entrega] */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -272,7 +277,7 @@
             text-align: center;
             transition: background-color 0.2s;
         }
-
+        
         /* --- Feedback de Añadido (Toast) --- */
         #toast {
             visibility: hidden;
@@ -299,9 +304,10 @@
         @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 100px; opacity: 1;} }
         @-webkit-keyframes fadeout { from {bottom: 100px; opacity: 1;} to {bottom: 0; opacity: 0;} }
         @keyframes fadeout { from {bottom: 100px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+
     </style>
 </head>
-<body onload="updateAddressVisibility()">
+<body onload="updateAddressVisibility(); updateChangeVisibility()">
 
 <header>
     <h1>🍔 Burger App 🟣 Azure</h1>
@@ -330,6 +336,24 @@
             <label for="clientAddress">Dirección de Entrega *</label>
             <input type="text" id="clientAddress" placeholder="Ej: Calle Falsa 123, Depto 4A" required>
         </div>
+        
+        <h2>Método de Pago</h2>
+        <div class="option-selector">
+            <input type="radio" id="cash" name="payment_method" value="Efectivo" checked onclick="updateChangeVisibility()">
+            <label for="cash">💵 Efectivo</label>
+            
+            <input type="radio" id="transfer" name="payment_method" value="Transferencia" onclick="updateChangeVisibility()">
+            <label for="transfer">🏦 Transferencia</label>
+            
+            <input type="radio" id="mp" name="payment_method" value="Mercado Pago" onclick="updateChangeVisibility()">
+            <label for="mp">💳 Mercado Pago</label>
+        </div>
+
+        <div class="input-group" id="changeInputGroup" style="display:none;">
+            <label for="cashChange">¿Necesitas cambio? (Efectivo) *</label>
+            <input type="number" id="cashChange" placeholder="Ej: Pago con $20.000 (deja vacío si pagas exacto)">
+        </div>
+
     </div>
 </div>
 
@@ -372,10 +396,17 @@
 <div id="toast">✅ ¡Producto añadido!</div>
 
 <script>
-    // --- Configuración (Tu número de WhatsApp con formato correcto) ---
+    // --- 1. CONFIGURACIÓN DEL NEGOCIO (¡EDITA ESTO!) ---
     const PHONE_NUMBER = "5493886032588"; 
     
-    // --- Datos de Productos (Mantenidos) ---
+    // DATOS DE PAGO DEL NEGOCIO
+    const PAYMENT_DETAILS = {
+        alias: "BURGER.APP.AZURE", // Alias CBU/CVU
+        cbu: "0123456789012345678901", // CBU/CVU
+        mpTag: "@BurgerAzureMP" // Tag de Mercado Pago o Link de pago
+    };
+    
+    // --- 2. DATOS DE PRODUCTOS (Mantenidos) ---
     const products = [
         {
             id: 1, name: "Hamburguesa Simple", price: 7000, emoji: "🍔",
@@ -413,7 +444,9 @@
     let cart = []; 
     let currentSelection = null; 
 
-    // --- Funciones para la visibilidad de la Dirección ---
+    // --- 3. FUNCIONES DE LÓGICA DE INTERFAZ (UI) ---
+    
+    // Controla si se pide Dirección según Envío/Retiro
     function updateAddressVisibility() {
         const deliveryChecked = document.getElementById('delivery').checked;
         const addressGroup = document.getElementById('addressInputGroup');
@@ -427,8 +460,30 @@
             addressInput.required = false;
         }
     }
+    
+    // Controla si se pide Cambio si el pago es en Efectivo
+    function updateChangeVisibility() {
+        const cashChecked = document.getElementById('cash').checked;
+        const changeGroup = document.getElementById('changeInputGroup');
+        const changeInput = document.getElementById('cashChange');
 
-    // --- Inicialización y Lógica de Pedido (Mantenido) ---
+        if (cashChecked) {
+            changeGroup.style.display = 'block';
+            // No es required, el campo es opcional
+        } else {
+            changeGroup.style.display = 'none';
+            changeInput.value = ""; // Limpiar el valor si se oculta
+        }
+    }
+
+
+    // --- 4. FUNCIONES PRINCIPALES (MODALES/CARRITO) ---
+    
+    // Las funciones `init()`, `openCustomizeModal()`, `closeModal()`, `renderIngredients()`, 
+    // `changeQty()`, `updateModalTotal()`, `confirmAddToCart()`, `openCartModal()`, 
+    // `renderCartList()`, `deleteFromCart()`, `emptyCart()`, `updateCartUI()`, `showToast()` 
+    // se mantienen de la versión anterior, asegurando la lógica de carrito y UI.
+    
     function init() {
         const app = document.getElementById('app');
         app.innerHTML = products.map(p => `
@@ -443,16 +498,6 @@
             </div>
         `).join('');
     }
-    
-    // ... (Mantener todas las funciones: openCustomizeModal, closeModal, renderIngredients, 
-    // changeQty, updateModalTotal, confirmAddToCart, openCartModal, renderCartList, 
-    // deleteFromCart, emptyCart, updateCartUI, showToast) ...
-    
-    // **********************************************
-    //  Nota: Por simplicidad y tamaño, no repetimos 
-    //  las funciones intermedias aquí, pero deben 
-    //  estar en el código final que copies.
-    // **********************************************
 
     function openCustomizeModal(productId) {
         const product = products.find(p => p.id === productId);
@@ -612,21 +657,20 @@
     }
 
 
-    // --- Lógica Final: Enviar a WhatsApp con Datos del Cliente y Servicio ---
+    // --- 5. LÓGICA FINAL: ENVIAR A WHATSAPP CON DATOS COMPLETOS ---
     function sendOrder() {
         const clientName = document.getElementById('clientName').value.trim();
         const clientAddress = document.getElementById('clientAddress').value.trim();
         const serviceType = document.querySelector('input[name="service_type"]:checked').value;
+        const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+        const cashChange = document.getElementById('cashChange').value.trim();
 
         if (cart.length === 0) {
             return showToast("El carrito está vacío. ¡Añade una Burger!");
         }
-
         if (clientName === "") {
             return showToast("⚠️ Por favor, completa tu Nombre.", 4000);
         }
-        
-        // Validación de Dirección solo si es Envío a Domicilio
         if (serviceType === 'delivery' && clientAddress === "") {
             return showToast("⚠️ Por favor, ingresa una Dirección para el Envío.", 4000);
         }
@@ -644,10 +688,28 @@
             message += `🏃 *MODALIDAD:* RETIRO EN LOCAL\n`;
         }
 
-        // Datos del Cliente
+        // Datos del Cliente y Pago
         message += `👤 *CLIENTE:* ${clientName}\n`;
+        message += `💵 *PAGO:* ${paymentMethod}\n`;
         message += `------------------------------------\n`;
-        
+
+        // Detalle de pago (solo si no es efectivo)
+        if (paymentMethod === 'Transferencia') {
+            message += `_Realizar transferencia por $${grandTotal.toLocaleString()} a:_\n`;
+            message += `🏦 *CBU/CVU:* ${PAYMENT_DETAILS.cbu}\n`;
+            message += `🤝 *ALIAS:* ${PAYMENT_DETAILS.alias}\n\n`;
+        } else if (paymentMethod === 'Mercado Pago') {
+            message += `_Pagar por MP por $${grandTotal.toLocaleString()} a:_\n`;
+            message += `💳 *TAG MP:* ${PAYMENT_DETAILS.mpTag}\n`;
+            message += `🤝 *ALIAS:* ${PAYMENT_DETAILS.alias}\n\n`;
+        } else if (paymentMethod === 'Efectivo' && cashChange !== "" && parseInt(cashChange) > grandTotal) {
+            message += `💰 *PAGA CON:* $${parseInt(cashChange).toLocaleString()}\n`;
+            message += ` cambio: $${(parseInt(cashChange) - grandTotal).toLocaleString()}\n\n`;
+        } else if (paymentMethod === 'Efectivo') {
+            message += `💰 *PAGA CON:* Efectivo (Monto exacto/a definir)\n\n`;
+        }
+
+
         // Items del Pedido
         message += `🛒 *DETALLE DEL PEDIDO:*\n`;
         cart.forEach((item, index) => {
@@ -662,15 +724,7 @@
 
         const whatsappUrl = `https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(message)}`;
         
-        let confirmationMessage = `Pedido de $${grandTotal.toLocaleString()} para ${clientName}.\n`;
-        if (serviceType === 'delivery') {
-             confirmationMessage += `Envío a: ${clientAddress}.\n`;
-        } else {
-             confirmationMessage += `Modalidad: Retiro en Local.\n`;
-        }
-        confirmationMessage += `\n¿Abrir WhatsApp para enviar el pedido?`;
-
-        if(confirm(confirmationMessage)) {
+        if(confirm(`Total: $${grandTotal.toLocaleString()} (${paymentMethod}). \n¿Abrir WhatsApp para enviar el pedido?`)) {
             showToast("Preparando WhatsApp...", 3000);
             window.open(whatsappUrl, '_blank');
         }
