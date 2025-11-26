@@ -39,9 +39,33 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        header h1 { margin: 0; font-size: 1.8rem; font-weight: 900; }
+        header h1 { 
+            margin: 0; 
+            font-size: 1.8rem; 
+            font-weight: 900; 
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* --- LOGO ANIMADO 3D --- */
+        .header-logo {
+            font-size: 2.2rem; /* Tamaño de la hamburguesa emoji */
+            display: inline-block; /* Para que la animación funcione */
+            animation: rotate3D 6s infinite linear; /* Animación */
+            filter: drop-shadow(0 0 8px var(--secondary)); /* Sombra para resaltar */
+        }
+
+        @keyframes rotate3D {
+            0% { transform: perspective(500px) rotateY(0deg); }
+            50% { transform: perspective(500px) rotateY(360deg); }
+            100% { transform: perspective(500px) rotateY(0deg); }
+        }
 
         .container {
             max-width: 600px;
@@ -64,7 +88,26 @@
         }
         .product-card:active { transform: scale(0.98); }
 
-        .product-img { font-size: 4.5rem; margin-bottom: 15px; filter: drop-shadow(0 0 5px var(--secondary)); }
+        /* --- Estilos para las IMAGENES de PRODUCTO --- */
+        .product-img-wrapper {
+            width: 150px; /* Tamaño del contenedor de la imagen */
+            height: 150px;
+            margin-bottom: 15px;
+            border-radius: 50%; /* Opcional: para hacer las imágenes circulares */
+            overflow: hidden; /* Recorta la imagen si es circular */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #2a2a2a; /* Fondo si la imagen no llena */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5), 0 0 20px var(--secondary); /* Sombra y brillo */
+        }
+        .product-img-wrapper img {
+            width: 100%; /* Ajusta la imagen al contenedor */
+            height: 100%;
+            object-fit: cover; /* Mantiene la proporción y cubre el área */
+            display: block;
+        }
+
         .product-info { text-align: center; width: 100%; }
         .product-info h2 { margin: 5px 0; font-size: 1.5rem; color: var(--text-light); }
         .product-info p { color: var(--text-dark); font-size: 0.95rem; margin-bottom: 15px; }
@@ -86,7 +129,7 @@
         .btn-customize:active { transform: scale(0.95); }
 
 
-        /* --- DATOS DEL CLIENTE --- */
+        /* --- DATOS DEL CLIENTE (Mantenidos) --- */
         #clientDataSection {
             background: var(--card-bg);
             border: 2px solid var(--primary);
@@ -127,7 +170,6 @@
             outline: none;
         }
         
-        /* Estilos para los selectores de Envío/Retiro y Pago */
         .option-selector {
             display: flex;
             gap: 10px;
@@ -156,7 +198,6 @@
             box-shadow: 0 0 10px var(--secondary);
         }
 
-        /* Estilo específico para pedir cambio en efectivo */
         #changeInputGroup {
             transition: all 0.3s;
         }
@@ -309,7 +350,7 @@
 <body onload="updateAddressVisibility(); updateChangeVisibility(); updateCartUI();">
 
 <header>
-    <h1>🍔 Burger App 🟣 Azure</h1>
+    <h1><span class="header-logo">🍔</span> Burger App 🟣 Azure</h1>
 </header>
 
 <div class="container">
@@ -351,8 +392,8 @@
         </div>
 
         <div class="input-group" id="changeInputGroup" style="display:none;">
-            <label for="cashChange">¿Necesitas cambio? (Efectivo) *</label>
-            <input type="number" id="cashChange" placeholder="Ej: Pago con $20.000 (deja vacío si pagas exacto)">
+            <label for="cashChange">¿Con cuánto pagas? (Para el cambio)</label>
+            <input type="number" id="cashChange" placeholder="Ej: 20000 (deja vacío si pagas exacto)">
         </div>
 
     </div>
@@ -399,7 +440,7 @@
 <script>
     // --- 1. CONFIGURACIÓN DEL NEGOCIO (¡EDITA ESTO!) ---
     const PHONE_NUMBER = "5493886032588"; 
-    const DELIVERY_FEE = 1500; // Nuevo: Costo fijo por Envío a Domicilio
+    const DELIVERY_FEE = 1500; 
 
     // DATOS DE PAGO DEL NEGOCIO
     const PAYMENT_DETAILS = {
@@ -408,10 +449,11 @@
         mpTag: "@BurgerAzureMP" // Tag de Mercado Pago o Link de pago
     };
     
-    // --- 2. DATOS DE PRODUCTOS (Mantenidos) ---
+    // --- 2. DATOS DE PRODUCTOS (¡NUEVO: AHORA CON RUTAS DE IMAGEN!) ---
     const products = [
         {
-            id: 1, name: "Hamburguesa Simple", price: 7000, emoji: "🍔",
+            id: 1, name: "Hamburguesa Simple", price: 7000, 
+            img: "./img/burger-simple.png", // <--- RUTA DE IMAGEN
             desc: "Pan, Carne, Lechuga, Tomate.",
             ingredients: [
                 { name: "Medallón de Carne", type: "meat", qty: 1 },
@@ -421,7 +463,8 @@
             ]
         },
         {
-            id: 2, name: "Hamburguesa Cheese", price: 10000, emoji: "🧀",
+            id: 2, name: "Hamburguesa Cheese", price: 10000, 
+            img: "./img/burger-cheese.png", // <--- RUTA DE IMAGEN
             desc: "Pan, Carne, Cheddar, Cebolla Caramelizada.",
             ingredients: [
                 { name: "Medallón de Carne", type: "meat", qty: 1 },
@@ -431,7 +474,8 @@
             ]
         },
         {
-            id: 3, name: "Hamburguesa Bacon Fries", price: 15000, emoji: "🥓",
+            id: 3, name: "Hamburguesa Bacon Fries", price: 15000, 
+            img: "./img/burger-baconfries.png", // <--- RUTA DE IMAGEN
             desc: "Pan, Carne, Cheddar, Papas Fritas, Bacon.",
             ingredients: [
                 { name: "Medallón de Carne", type: "meat", qty: 1 },
@@ -448,7 +492,6 @@
 
     // --- 3. FUNCIONES DE LÓGICA DE INTERFAZ (UI) ---
     
-    // Controla si se pide Dirección según Envío/Retiro
     function updateAddressVisibility() {
         const deliveryChecked = document.getElementById('delivery').checked;
         const addressGroup = document.getElementById('addressInputGroup');
@@ -463,7 +506,6 @@
         }
     }
     
-    // Controla si se pide Cambio si el pago es en Efectivo
     function updateChangeVisibility() {
         const cashChecked = document.getElementById('cash').checked;
         const changeGroup = document.getElementById('changeInputGroup');
@@ -483,7 +525,9 @@
         const app = document.getElementById('app');
         app.innerHTML = products.map(p => `
             <div class="product-card">
-                <div class="product-img">${p.emoji}</div>
+                <div class="product-img-wrapper"> 
+                    <img src="${p.img}" alt="${p.name}"> 
+                </div>
                 <div class="product-info">
                     <h2>${p.name}</h2>
                     <p>${p.desc}</p>
@@ -550,10 +594,10 @@
 
         currentSelection.ingredients.forEach(ing => {
             const originalIng = originalProduct.ingredients.find(i => i.name === ing.name);
-            const originalQty = originalIng ? originalIng.qty : 0;
-            
-            if (ing.qty > originalQty) {
-                const diff = ing.qty - originalQty;
+            if (!originalIng) return;
+
+            if (ing.qty > originalIng.qty) {
+                const diff = ing.qty - originalIng.qty;
                 extraCost += diff * (ing.type === 'meat' ? 1000 : 200);
             }
         });
@@ -638,7 +682,6 @@
         }
     }
 
-    // ACTUALIZACIÓN CLAVE: Calcula y muestra el total, incluyendo el Costo de Envío
     function updateCartUI() {
         const subtotal = cart.reduce((sum, item) => sum + item.finalPrice, 0);
         const serviceType = document.querySelector('input[name="service_type"]:checked').value;
@@ -651,104 +694,4 @@
         const grandTotal = subtotal + deliveryCost;
 
         document.getElementById('cartTotal').innerText = grandTotal.toLocaleString();
-        document.getElementById('cartCount').innerText = cart.length;
-    }
-    
-    function showToast(message, duration = 3000) {
-        const toast = document.getElementById("toast");
-        toast.innerText = message;
-        toast.className = "show";
-        setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, duration);
-    }
-
-
-    // --- 5. LÓGICA FINAL: ENVIAR A WHATSAPP CON DATOS COMPLETOS ---
-    function sendOrder() {
-        const clientName = document.getElementById('clientName').value.trim();
-        const clientAddress = document.getElementById('clientAddress').value.trim();
-        const serviceType = document.querySelector('input[name="service_type"]:checked').value;
-        const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
-        const cashChange = document.getElementById('cashChange').value.trim();
-        
-        const subtotal = cart.reduce((sum, item) => sum + item.finalPrice, 0);
-        let deliveryCost = 0;
-        if (serviceType === 'delivery') {
-            deliveryCost = DELIVERY_FEE;
-        }
-        const grandTotal = subtotal + deliveryCost;
-
-
-        if (cart.length === 0) {
-            return showToast("El carrito está vacío. ¡Añade una Burger!");
-        }
-        if (clientName === "") {
-            return showToast("⚠️ Por favor, completa tu Nombre.", 4000);
-        }
-        if (serviceType === 'delivery' && clientAddress === "") {
-            return showToast("⚠️ Por favor, ingresa una Dirección para el Envío.", 4000);
-        }
-
-        const waitTime = Math.floor(Math.random() * (40 - 20 + 1) + 20);
-        
-        let message = `*⭐ NUEVO PEDIDO WEB (AZURE) ⭐*\n\n`;
-
-        // Tipo de Servicio
-        if (serviceType === 'delivery') {
-            message += `🛵 *MODALIDAD:* ENVÍO A DOMICILIO\n`;
-            message += `🏠 *DIRECCIÓN:* ${clientAddress}\n`;
-        } else {
-            message += `🏃 *MODALIDAD:* RETIRO EN LOCAL\n`;
-        }
-
-        // Datos del Cliente y Pago
-        message += `👤 *CLIENTE:* ${clientName}\n`;
-        message += `💵 *PAGO:* ${paymentMethod}\n`;
-        message += `------------------------------------\n`;
-
-        // Detalle de pago (solo si no es efectivo)
-        if (paymentMethod === 'Transferencia') {
-            message += `_Realizar transferencia por $${grandTotal.toLocaleString()} a:_\n`;
-            message += `🏦 *CBU/CVU:* ${PAYMENT_DETAILS.cbu}\n`;
-            message += `🤝 *ALIAS:* ${PAYMENT_DETAILS.alias}\n\n`;
-        } else if (paymentMethod === 'Mercado Pago') {
-            message += `_Pagar por MP por $${grandTotal.toLocaleString()} a:_\n`;
-            message += `💳 *TAG MP:* ${PAYMENT_DETAILS.mpTag}\n`;
-            message += `🤝 *ALIAS:* ${PAYMENT_DETAILS.alias}\n\n`;
-        } else if (paymentMethod === 'Efectivo' && cashChange !== "" && parseInt(cashChange) > grandTotal) {
-            message += `💰 *PAGA CON:* $${parseInt(cashChange).toLocaleString()}\n`;
-            message += ` cambio: $${(parseInt(cashChange) - grandTotal).toLocaleString()}\n\n`;
-        } else if (paymentMethod === 'Efectivo') {
-            message += `💰 *PAGA CON:* Efectivo (Monto exacto/a definir)\n\n`;
-        }
-
-
-        // Items del Pedido
-        message += `🛒 *DETALLE DEL PEDIDO:*\n`;
-        cart.forEach((item, index) => {
-            message += `\n- *${item.name}* ($${item.finalPrice.toLocaleString()})\n`;
-            if (item.mods.length > 0) message += `    ${item.mods.join('\n    ')}`;
-        });
-
-        // Totales Finales
-        message += `\n------------------------------------\n`;
-        message += `💵 *SUBTOTAL:* $${subtotal.toLocaleString()}\n`;
-        if (deliveryCost > 0) {
-            message += `🛵 *COSTO ENVÍO:* $${deliveryCost.toLocaleString()}\n`;
-        }
-        message += `💰 *TOTAL FINAL:* $${grandTotal.toLocaleString()}*\n`;
-        message += `⏱️ Espera aprox: ${waitTime} min`;
-
-        const whatsappUrl = `https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(message)}`;
-        
-        if(confirm(`Total: $${grandTotal.toLocaleString()} (${paymentMethod}). \n¿Abrir WhatsApp para enviar el pedido?`)) {
-            showToast("Preparando WhatsApp...", 3000);
-            window.open(whatsappUrl, '_blank');
-        }
-    }
-
-    // Iniciar la aplicación al cargar
-    init();
-</script>
-
-</body>
-</html>
+        document.getElementById('cart
