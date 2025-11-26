@@ -53,7 +53,7 @@
             gap: 10px;
         }
 
-        /* --- LOGO ANIMADO 3D --- */
+        /* --- LOGO ANIMADO 3D (MANTENIDO) --- */
         .header-logo {
             font-size: 2.2rem; 
             display: inline-block; 
@@ -88,24 +88,22 @@
         }
         .product-card:active { transform: scale(0.98); }
 
-        /* --- Estilos para las IMAGENES de PRODUCTO --- */
+        /* --- Estilos para los EMOJIS (NUEVO) --- */
         .product-img-wrapper {
             width: 150px; 
             height: 150px;
             margin-bottom: 15px;
-            border-radius: 50%; 
-            overflow: hidden; 
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             background-color: #2a2a2a; 
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5), 0 0 20px var(--secondary); 
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5), 0 0 20px var(--primary); 
+            font-size: 70px; /* Tamaño del emoji */
         }
-        .product-img-wrapper img {
-            width: 100%; 
-            height: 100%;
-            object-fit: cover; 
-            display: block;
+        .product-img-wrapper span {
+            display: inline-block;
+            transform: scale(1.2); /* Agrandar un poco el emoji */
         }
 
         .product-info { text-align: center; width: 100%; }
@@ -129,7 +127,7 @@
         .btn-customize:active { transform: scale(0.95); }
 
 
-        /* --- DATOS DEL CLIENTE (Mantenidos) --- */
+        /* --- DATOS DEL CLIENTE --- */
         #clientDataSection {
             background: var(--card-bg);
             border: 2px solid var(--primary);
@@ -202,7 +200,7 @@
             transition: all 0.3s;
         }
 
-        /* --- MODAL GENERAL Y COMPONENTES (MANTENIDOS) --- */
+        /* --- MODAL GENERAL Y COMPONENTES --- */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -444,16 +442,16 @@
 
     // DATOS DE PAGO DEL NEGOCIO
     const PAYMENT_DETAILS = {
-        alias: "BURGER.APP.AZURE", // Alias CBU/CVU
-        cbu: "0123456789012345678901", // CBU/CVU
-        mpTag: "@BurgerAzureMP" // Tag de Mercado Pago o Link de pago
+        alias: "BURGER.APP.AZURE", 
+        cbu: "0123456789012345678901", 
+        mpTag: "@BurgerAzureMP" 
     };
     
-    // --- 2. DATOS DE PRODUCTOS (¡CON RUTAS DE IMAGEN!) ---
+    // --- 2. DATOS DE PRODUCTOS (¡VOLVEMOS A EMOJIS!) ---
     const products = [
         {
             id: 1, name: "Hamburguesa Simple", price: 7000, 
-            img: "./img/burger-simple.png", 
+            emoji: "🍔", // <--- EMOJI
             desc: "Pan, Carne, Lechuga, Tomate.",
             ingredients: [
                 { name: "Medallón de Carne", type: "meat", qty: 1 },
@@ -464,7 +462,7 @@
         },
         {
             id: 2, name: "Hamburguesa Cheese", price: 10000, 
-            img: "./img/burger-cheese.png", 
+            emoji: "🧀", // <--- EMOJI
             desc: "Pan, Carne, Cheddar, Cebolla Caramelizada.",
             ingredients: [
                 { name: "Medallón de Carne", type: "meat", qty: 1 },
@@ -475,7 +473,7 @@
         },
         {
             id: 3, name: "Hamburguesa Bacon Fries", price: 15000, 
-            img: "./img/burger-baconfries.png", 
+            emoji: "🥓🍟", // <--- EMOJI
             desc: "Pan, Carne, Cheddar, Papas Fritas, Bacon.",
             ingredients: [
                 { name: "Medallón de Carne", type: "meat", qty: 1 },
@@ -490,30 +488,8 @@
     let cart = []; 
     let currentSelection = null; 
 
-    // --- FUNCIONES DE INICIALIZACIÓN Y LÓGICA ---
+    // --- 3. FUNCIONES DE LÓGICA DE INTERFAZ (UI) ---
     
-    // La función que crea y muestra los productos
-    function init() {
-        const app = document.getElementById('app');
-        // El resto del código de renderizado de productos va aquí
-        app.innerHTML = products.map(p => `
-            <div class="product-card">
-                <div class="product-img-wrapper"> 
-                    <img src="${p.img}" alt="${p.name}"> 
-                </div>
-                <div class="product-info">
-                    <h2>${p.name}</h2>
-                    <p>${p.desc}</p>
-                    <div class="price">$${p.price.toLocaleString()}</div>
-                </div>
-                <button class="btn-customize" onclick="openCustomizeModal(${p.id})">Agregar / Editar</button>
-            </div>
-        `).join('');
-    }
-    
-    // El resto de las funciones (updateAddressVisibility, updateChangeVisibility, etc.)
-    // han sido reincorporadas aquí abajo para la funcionalidad completa:
-
     function updateAddressVisibility() {
         const deliveryChecked = document.getElementById('delivery').checked;
         const addressGroup = document.getElementById('addressInputGroup');
@@ -539,6 +515,24 @@
             changeGroup.style.display = 'none';
             changeInput.value = ""; 
         }
+    }
+
+    // --- 4. FUNCIONES PRINCIPALES (MODALES/CARRITO) ---
+    
+    function init() {
+        const app = document.getElementById('app');
+        app.innerHTML = products.map(p => `
+            <div class="product-card">
+                <div class="product-img-wrapper"> 
+                    <span>${p.emoji}</span> </div>
+                <div class="product-info">
+                    <h2>${p.name}</h2>
+                    <p>${p.desc}</p>
+                    <div class="price">$${p.price.toLocaleString()}</div>
+                </div>
+                <button class="btn-customize" onclick="openCustomizeModal(${p.id})">Agregar / Editar</button>
+            </div>
+        `).join('');
     }
 
     function openCustomizeModal(productId) {
@@ -783,9 +777,7 @@
             window.open(whatsappUrl, '_blank');
         }
     }
-
-    // Iniciar la aplicación al cargar
-    init();
 </script>
+
 </body>
 </html>
