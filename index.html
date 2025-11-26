@@ -447,11 +447,11 @@
         mpTag: "@BurgerAzureMP" 
     };
     
-    // --- 2. DATOS DE PRODUCTOS (¡VOLVEMOS A EMOJIS!) ---
+    // --- 2. DATOS DE PRODUCTOS (¡VOLVEMOS A EMOJIS CON AJUSTE!) ---
     const products = [
         {
             id: 1, name: "Hamburguesa Simple", price: 7000, 
-            emoji: "🍔", // <--- EMOJI
+            emoji: "🍔", 
             desc: "Pan, Carne, Lechuga, Tomate.",
             ingredients: [
                 { name: "Medallón de Carne", type: "meat", qty: 1 },
@@ -462,7 +462,7 @@
         },
         {
             id: 2, name: "Hamburguesa Cheese", price: 10000, 
-            emoji: "🧀", // <--- EMOJI
+            emoji: "🧀", 
             desc: "Pan, Carne, Cheddar, Cebolla Caramelizada.",
             ingredients: [
                 { name: "Medallón de Carne", type: "meat", qty: 1 },
@@ -473,7 +473,7 @@
         },
         {
             id: 3, name: "Hamburguesa Bacon Fries", price: 15000, 
-            emoji: "🥓🍟", // <--- EMOJI
+            emoji: "🍔🥓🍟", // <--- EMOJI ACTUALIZADO
             desc: "Pan, Carne, Cheddar, Papas Fritas, Bacon.",
             ingredients: [
                 { name: "Medallón de Carne", type: "meat", qty: 1 },
@@ -726,58 +726,4 @@
             return showToast("⚠️ Por favor, ingresa una Dirección para el Envío.", 4000);
         }
 
-        const waitTime = Math.floor(Math.random() * (40 - 20 + 1) + 20);
-        
-        let message = `*⭐ NUEVO PEDIDO WEB (AZURE) ⭐*\n\n`;
-
-        if (serviceType === 'delivery') {
-            message += `🛵 *MODALIDAD:* ENVÍO A DOMICILIO\n`;
-            message += `🏠 *DIRECCIÓN:* ${clientAddress}\n`;
-        } else {
-            message += `🏃 *MODALIDAD:* RETIRO EN LOCAL\n`;
-        }
-
-        message += `👤 *CLIENTE:* ${clientName}\n`;
-        message += `💵 *PAGO:* ${paymentMethod}\n`;
-        message += `------------------------------------\n`;
-
-        if (paymentMethod === 'Transferencia') {
-            message += `_Realizar transferencia por $${grandTotal.toLocaleString()} a:_\n`;
-            message += `🏦 *CBU/CVU:* ${PAYMENT_DETAILS.cbu}\n`;
-            message += `🤝 *ALIAS:* ${PAYMENT_DETAILS.alias}\n\n`;
-        } else if (paymentMethod === 'Mercado Pago') {
-            message += `_Pagar por MP por $${grandTotal.toLocaleString()} a:_\n`;
-            message += `💳 *TAG MP:* ${PAYMENT_DETAILS.mpTag}\n`;
-            message += `🤝 *ALIAS:* ${PAYMENT_DETAILS.alias}\n\n`;
-        } else if (paymentMethod === 'Efectivo' && cashChange !== "" && parseInt(cashChange) > grandTotal) {
-            message += `💰 *PAGA CON:* $${parseInt(cashChange).toLocaleString()}\n`;
-            message += ` cambio: $${(parseInt(cashChange) - grandTotal).toLocaleString()}\n\n`;
-        } else if (paymentMethod === 'Efectivo') {
-            message += `💰 *PAGA CON:* Efectivo (Monto exacto/a definir)\n\n`;
-        }
-
-        message += `🛒 *DETALLE DEL PEDIDO:*\n`;
-        cart.forEach((item, index) => {
-            message += `\n- *${item.name}* ($${item.finalPrice.toLocaleString()})\n`;
-            if (item.mods.length > 0) message += `    ${item.mods.join('\n    ')}`;
-        });
-
-        message += `\n------------------------------------\n`;
-        message += `💵 *SUBTOTAL:* $${subtotal.toLocaleString()}\n`;
-        if (deliveryCost > 0) {
-            message += `🛵 *COSTO ENVÍO:* $${deliveryCost.toLocaleString()}\n`;
-        }
-        message += `💰 *TOTAL FINAL:* $${grandTotal.toLocaleString()}*\n`;
-        message += `⏱️ Espera aprox: ${waitTime} min`;
-
-        const whatsappUrl = `https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(message)}`;
-        
-        if(confirm(`Total: $${grandTotal.toLocaleString()} (${paymentMethod}). \n¿Abrir WhatsApp para enviar el pedido?`)) {
-            showToast("Preparando WhatsApp...", 3000);
-            window.open(whatsappUrl, '_blank');
-        }
-    }
-</script>
-
-</body>
-</html>
+        const waitTime = Math
