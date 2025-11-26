@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burger App Pedidos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* --- Paleta de Colores Dark Mode --- */
+        :root {
+            --primary: #6200EE;    /* Violeta Principal */
+            --secondary: #03DAC6;  /* Azul/Turquesa Acento */
+            --background: #121212; /* Negro Oscuro */
+            --card-bg: #1F1F1F;    /* Gris Oscuro para Tarjetas */
+            --text-light: #FFFFFF;
+            --text-dark: #BBBBBB;
+            --success: #018786;    /* Verde para WhatsApp */
+            --danger: #CF6679;     /* Rojo para Borrar */
+        }
+
+        /* --- Estilos Base --- */
+        body {
+            font-family: 'Montserrat', sans-serif;
+            /* Degradado de fondo con tonos oscuros */
+            background: linear-gradient(135deg, var(--background) 0%, #000000 100%);
+            margin: 0;
+            padding: 0;
+            color: var(--text-dark);
+            padding-bottom: 110px;
+            transition: background 0.5s;
+        }
+
+        /* --- Encabezado --- */
+        header {
+            background-color: var(--primary);
+            color: var(--text-light);
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header h1 { margin: 0; font-size: 1.8rem; font-weight: 900; }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* --- PRODUCTOS (HAMBURGUESAS) --- */
+        .product-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.2s;
+        }
+        .product-card:active { transform: scale(0.98); }
+
+        .product-img { font-size: 4.5rem; margin-bottom: 15px; filter: drop-shadow(0 0 5px var(--secondary)); }
+        .product-info { text-align: center; width: 100%; }
+        .product-info h2 { margin: 5px 0; font-size: 1.5rem; color: var(--text-light); }
+        .product-info p { color: var(--text-dark); font-size: 0.95rem; margin-bottom: 15px; }
+        .price { font-weight: bold; font-size: 1.4rem; color: var(--secondary); }
+
+        .btn-customize {
+            background-color: var(--secondary);
+            color: var(--background);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 80%;
+            font-size: 1.05rem;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .btn-customize:hover { background-color: var(--primary); color: var(--text-light); }
+
+        /* --- MODAL GENERAL --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: flex-end;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            color: var(--text-dark);
+            width: 100%;
+            max-width: 600px;
+            border-radius: 20px 20px 0 0;
+            padding: 25px;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Curva suave */
+            position: relative;
+        }
+        .modal-content h2 { color: var(--secondary); }
+
+        /* --- INGREDIENTES Y CANTIDAD --- */
+        .ingredient-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .qty-control { display: flex; align-items: center; gap: 10px; }
+        .btn-circle {
+            width: 35px; height: 35px; border-radius: 50%;
+            border: 1px solid var(--secondary);
+            background: var(--background);
+            color: var(--secondary);
+            font-weight: bold; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+        }
+        .btn-circle:active { background: var(--secondary); color: var(--background); }
+
+        /* --- LISTA DE PEDIDO (CARRITO) --- */
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #2A2A2A;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 5px solid var(--primary);
+        }
+        .cart-item-details strong { display: block; font-size: 1.15rem; color: var(--text-light); }
+        .cart-item-details small { color: var(--text-dark); font-size: 0.9rem; display: block; }
+
+        .btn-delete {
+            background-color: var(--danger);
+            color: var(--text-light);
+            border: none;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            margin-left: 10px;
+            font-size: 1.2rem;
+        }
+
+        .btn-add-cart {
+            background-color: var(--primary);
+            color: var(--text-light); width: 100%; padding: 15px;
+            border: none; border-radius: 10px; font-size: 1.1rem;
+            margin-top: 20px; cursor: pointer;
+        }
+
+        .btn-close {
+            background: transparent; border: none; font-size: 1.8rem;
+            position: absolute; top: 15px; right: 20px; cursor: pointer; 
+            color: var(--text-dark);
+        }
+
+        /* --- BARRA INFERIOR (CARRITO) --- */
+        .bottom-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: #000000;
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.6);
+            padding: 15px; 
+            display: flex; flex-direction: column; gap: 10px;
+            box-sizing: border-box; z-index: 500;
+        }
+
+        .bar-actions {
+            display: flex; justify-content: space-between; width: 100%; gap: 10px;
+        }
+
+        .btn-view-cart {
+            background-color: var(--secondary);
+            color: var(--background);
+            flex: 1; padding: 15px; border-radius: 30px;
+            border: none; font-weight: bold; cursor: pointer;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+        .btn-view-cart:hover { background-color: var(--primary); color: var(--text-light); }
+
+        .btn-whatsapp {
+            background-color: var(--success);
+            color: var(--text-light);
+            flex: 2; padding: 15px; border-radius: 30px;
+            border: none; font-weight: bold; cursor: pointer;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+
+        /* --- Feedback de Añadido (Toast) --- */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 2px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1001;
+            left: 50%;
+            bottom: 100px;
+            transform: translateX(-50%);
+            font-size: 17px;
+        }
+        #toast.show {
+            visibility: visible;
+            -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+        @-webkit-keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 100px; opacity: 1;} }
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 100px; opacity: 1;} }
+        @-webkit-keyframes fadeout { from {bottom: 100px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+        @keyframes fadeout { from {bottom: 100px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🍔 Burger App 🟣 Azure</h1>
+</header>
+
+<div class="container" id="app">
+    </div>
+
+<div class="bottom-bar" id="cartBar">
+    <div style="text-align: center; font-weight: bold; font-size: 1.2rem; color: var(--text-light);">
+        Total: $<span id="cartTotal">0</span> (<span id="cartCount">0</span> items)
+    </div>
+    <div class="bar-actions">
+        <button class="btn-view-cart" onclick="openCartModal()">Ver/Borrar 📝</button>
+        <button class="btn-whatsapp" onclick="sendOrder()">Pedir por WhatsApp 📱</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalCustomize">
+    <div class="modal-content">
+        <button class="btn-close" onclick="closeModal('modalCustomize')">&times;</button>
+        <h2 id="modalTitle">Personalizar</h2>
+        <p style="color:var(--secondary);">Base: $<span id="modalBasePrice">0</span></p>
+        <div id="ingredientsList"></div>
+        <div style="margin-top: 20px; text-align: right; font-weight: bold; font-size: 1.1rem; color: var(--text-light);">
+            Subtotal: $<span id="modalSubtotal">0</span>
+        </div>
+        <button class="btn-add-cart" onclick="confirmAddToCart()">Confirmar Item</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalCart">
+    <div class="modal-content">
+        <button class="btn-close" onclick="closeModal('modalCart')">&times;</button>
+        <h2>Tu Pedido</h2>
+        <div id="cartItemsList" style="margin-bottom: 20px;">
+            </div>
+        <div style="display:flex; gap:10px;">
+            <button class="btn-view-cart" style="flex:1; background-color: var(--danger);" onclick="emptyCart()">Vaciar Carrito 🗑️</button>
+            <button class="btn-view-cart" style="flex:1;" onclick="closeModal('modalCart')">Seguir Pidiendo</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast">✅ ¡Producto añadido!</div>
+
+<script>
+    // --- Configuración (Tu número de WhatsApp con formato correcto) ---
+    const PHONE_NUMBER = "5493886032588"; 
+    
+    // --- Datos de Productos ---
+    const products = [
+        {
+            id: 1, name: "Hamburguesa Simple", price: 7000, emoji: "🍔",
+            desc: "Pan, Carne, Lechuga, Tomate.",
+            ingredients: [
+                { name: "Medallón de Carne", type: "meat", qty: 1 },
+                { name: "Lechuga", type: "veg", qty: 1 },
+                { name: "Tomate", type: "veg", qty: 1 },
+                { name: "Pan", type: "base", qty: 1 }
+            ]
+        },
+        {
+            id: 2, name: "Hamburguesa Cheese", price: 10000, emoji: "🧀",
+            desc: "Pan, Carne, Cheddar, Cebolla Caramelizada.",
+            ingredients: [
+                { name: "Medallón de Carne", type: "meat", qty: 1 },
+                { name: "Cheddar", type: "veg", qty: 1 },
+                { name: "Cebolla Caramelizada", type: "veg", qty: 1 },
+                { name: "Pan", type: "base", qty: 1 }
+            ]
+        },
+        {
+            id: 3, name: "Hamburguesa Bacon Fries", price: 15000, emoji: "🥓",
+            desc: "Pan, Carne, Cheddar, Papas Fritas, Bacon.",
+            ingredients: [
+                { name: "Medallón de Carne", type: "meat", qty: 1 },
+                { name: "Cheddar", type: "veg", qty: 1 },
+                { name: "Bacon", type: "veg", qty: 1 },
+                { name: "Papas Fritas", type: "veg", qty: 1 },
+                { name: "Pan", type: "base", qty: 1 }
+            ]
+        }
+    ];
+
+    let cart = []; 
+    let currentSelection = null; 
+
+    // --- Inicialización: Pone las hamburguesas en la página ---
+    function init() {
+        const app = document.getElementById('app');
+        app.innerHTML = products.map(p => `
+            <div class="product-card">
+                <div class="product-img">${p.emoji}</div>
+                <div class="product-info">
+                    <h2>${p.name}</h2>
+                    <p>${p.desc}</p>
+                    <div class="price">$${p.price.toLocaleString()}</div>
+                </div>
+                <button class="btn-customize" onclick="openCustomizeModal(${p.id})">Agregar / Editar</button>
+            </div>
+        `).join('');
+    }
+
+    // --- Funciones Modales ---
+    function openCustomizeModal(productId) {
+        const product = products.find(p => p.id === productId);
+        const ingredientsCopy = product.ingredients.map(i => ({...i}));
+
+        currentSelection = {
+            id: product.id,
+            name: product.name,
+            basePrice: product.price,
+            ingredients: ingredientsCopy
+        };
+
+        document.getElementById('modalTitle').innerText = product.name;
+        document.getElementById('modalBasePrice').innerText = product.price.toLocaleString();
+        renderIngredients();
+        updateModalTotal();
+        document.getElementById('modalCustomize').style.display = 'flex';
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+        if(modalId === 'modalCustomize') currentSelection = null;
+    }
+
+    // --- Lógica de Ingredientes y Precios ---
+    function renderIngredients() {
+        const list = document.getElementById('ingredientsList');
+        list.innerHTML = currentSelection.ingredients.map((ing, index) => {
+            if(ing.name === "Pan") return ''; 
+            const extraCostText = ing.type === 'meat' ? "(+$1000)" : "(+$200)";
+            const qtyColor = ing.qty === 0 ? 'color:#888' : 'color:var(--text-light)';
+            
+            return `
+            <div class="ingredient-row" style="${qtyColor}">
+                <div><strong>${ing.name}</strong> <small style="color:#666">Extra ${extraCostText}</small></div>
+                <div class="qty-control">
+                    <button class="btn-circle" onclick="changeQty(${index}, -1)">-</button>
+                    <span>${ing.qty}</span>
+                    <button class="btn-circle" onclick="changeQty(${index}, 1)">+</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function changeQty(index, delta) {
+        const ing = currentSelection.ingredients[index];
+        if (ing.qty + delta < 0) return;
+        ing.qty += delta;
+        renderIngredients();
+        updateModalTotal();
+    }
+
+    function updateModalTotal() {
+        const originalProduct = products.find(p => p.id === currentSelection.id);
+        let extraCost = 0;
+
+        currentSelection.ingredients.forEach(ing => {
+            const originalIng = originalProduct.ingredients.find(i => i.name === ing.name);
+            const originalQty = originalIng ? originalIng.qty : 0;
+            
+            if (ing.qty > originalQty) {
+                const diff = ing.qty - originalQty;
+                extraCost += diff * (ing.type === 'meat' ? 1000 : 200);
+            }
+        });
+
+        const total = currentSelection.basePrice + extraCost;
+        document.getElementById('modalSubtotal').innerText = total.toLocaleString();
+        currentSelection.finalPrice = total;
+    }
+
+    function confirmAddToCart() {
+        const originalProduct = products.find(p => p.id === currentSelection.id);
+        let mods = [];
+
+        currentSelection.ingredients.forEach(ing => {
+            const originalIng = originalProduct.ingredients.find(i => i.name === ing.name);
+            if (!originalIng) return;
+
+            if (ing.qty > originalIng.qty) {
+                const cost = (ing.qty - originalIng.qty) * (ing.type === 'meat' ? 1000 : 200);
+                mods.push(`+ ${ing.qty - originalIng.qty} ${ing.name} (+ $${cost.toLocaleString()})`);
+            } else if (ing.qty < originalIng.qty) {
+                mods.push(ing.qty === 0 ? `🚫 SIN ${ing.name}` : `➖ MENOS ${ing.name}`);
+            }
+        });
+
+        cart.push({ ...currentSelection, mods: mods });
+        updateCartUI();
+        closeModal('modalCustomize');
+        showToast("¡Producto añadido!");
+    }
+    
+    // --- Funciones del Carrito (Borrar/Vaciar) ---
+    function openCartModal() {
+        if(cart.length === 0) {
+            showToast("El carrito está vacío. ¡Añade una Burger!");
+            return;
+        }
+        renderCartList();
+        document.getElementById('modalCart').style.display = 'flex';
+    }
+
+    function renderCartList() {
+        const list = document.getElementById('cartItemsList');
+        if(cart.length === 0) {
+            list.innerHTML = "<p style='text-align:center; padding: 20px; color: var(--danger);'>No tienes nada en el pedido.</p>";
+            return;
+        }
+
+        list.innerHTML = cart.map((item, index) => {
+            const modsHtml = item.mods.length > 0 ? 
+                `<small style="color:var(--text-dark); font-style:italic;">${item.mods.join(' | ')}</small>` : 
+                `<small style="color:var(--secondary)">Clásica</small>`;
+
+            return `
+            <div class="cart-item">
+                <div class="cart-item-details">
+                    <strong>${item.name}</strong>
+                    ${modsHtml}
+                    <div style="color:var(--secondary); font-weight:700;">$${item.finalPrice.toLocaleString()}</div>
+                </div>
+                <button class="btn-delete" onclick="deleteFromCart(${index})">🗑️</button>
+            </div>
+            `;
+        }).join('');
+    }
+
+    function deleteFromCart(index) {
+        cart.splice(index, 1);
+        updateCartUI();
+        renderCartList(); 
+        if(cart.length === 0) {
+            closeModal('modalCart');
+            showToast("Carrito vaciado.", 2000);
+        }
+    }
+    
+    function emptyCart() {
+        if(confirm("¿Estás seguro que deseas vaciar todo el pedido?")) {
+            cart = [];
+            updateCartUI();
+            closeModal('modalCart');
+            showToast("Carrito vaciado por completo.", 2000);
+        }
+    }
+
+    function updateCartUI() {
+        const total = cart.reduce((sum, item) => sum + item.finalPrice, 0);
+        document.getElementById('cartTotal').innerText = total.toLocaleString();
+        document.getElementById('cartCount').innerText = cart.length;
+    }
+    
+    // --- Utilidades ---
+    function showToast(message, duration = 3000) {
+        const toast = document.getElementById("toast");
+        toast.innerText = message;
+        toast.className = "show";
+        setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, duration);
+    }
+
+
+    // --- Enviar a WhatsApp ---
+    function sendOrder() {
+        if (cart.length === 0) return showToast("El carrito está vacío. ¡Añade una Burger!");
+
+        const waitTime = Math.floor(Math.random() * (40 - 20 + 1) + 20);
+        let message = `*NUEVO PEDIDO WEB (AZURE)* 🟣\n\n`;
+        
+        cart.forEach((item, index) => {
+            message += `🔹 *${item.name}* ($${item.finalPrice.toLocaleString()})\n`;
+            if (item.mods.length > 0) message += `   ${item.mods.join('\n   ')}\n`;
+            message += `\n`;
+        });
+
+        const grandTotal = cart.reduce((sum, item) => sum + item.finalPrice, 0);
+        message += `💰 *TOTAL A COBRAR: $${grandTotal.toLocaleString()}*\n`;
+        message += `⏱️ Espera aprox: ${waitTime} min`;
+
+        const whatsappUrl = `https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(message)}`;
+        
+        if(confirm(`Total: $${grandTotal.toLocaleString()}. \n¿Abrir WhatsApp para enviar el pedido?`)) {
+            showToast("Preparando WhatsApp...", 3000);
+            window.open(whatsappUrl, '_blank');
+        }
+    }
+
+    // Iniciar la aplicación al cargar
+    init();
+</script>
+
+</body>
+</html>
