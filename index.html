@@ -21,7 +21,6 @@
         /* --- Estilos Base --- */
         body {
             font-family: 'Montserrat', sans-serif;
-            /* Degradado de fondo con tonos oscuros */
             background: linear-gradient(135deg, var(--background) 0%, #000000 100%);
             margin: 0;
             padding: 0;
@@ -84,8 +83,51 @@
             transition: background-color 0.2s, transform 0.1s;
         }
         .btn-customize:hover { background-color: var(--primary); color: var(--text-light); }
+        .btn-customize:active { transform: scale(0.95); }
 
-        /* --- MODAL GENERAL --- */
+
+        /* --- DATOS DEL CLIENTE --- */
+        #clientDataSection {
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        #clientDataSection h2 {
+            margin-top: 0;
+            color: var(--primary);
+            font-size: 1.4rem;
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        .input-group input {
+            width: 90%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background: #2A2A2A;
+            color: var(--text-light);
+            font-size: 1rem;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+            transition: border-color 0.3s;
+        }
+        .input-group input:focus {
+            border-color: var(--secondary);
+            outline: none;
+        }
+
+        /* --- MODAL GENERAL Y COMPONENTES (MANTENIDOS) --- */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -105,12 +147,11 @@
             padding: 25px;
             max-height: 85vh;
             overflow-y: auto;
-            animation: slideUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Curva suave */
+            animation: slideUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             position: relative;
         }
         .modal-content h2 { color: var(--secondary); }
 
-        /* --- INGREDIENTES Y CANTIDAD --- */
         .ingredient-row {
             display: flex;
             justify-content: space-between;
@@ -130,7 +171,6 @@
         }
         .btn-circle:active { background: var(--secondary); color: var(--background); }
 
-        /* --- LISTA DE PEDIDO (CARRITO) --- */
         .cart-item {
             display: flex;
             justify-content: space-between;
@@ -141,6 +181,7 @@
             margin-bottom: 10px;
             border-left: 5px solid var(--primary);
         }
+        
         .cart-item-details strong { display: block; font-size: 1.15rem; color: var(--text-light); }
         .cart-item-details small { color: var(--text-dark); font-size: 0.9rem; display: block; }
 
@@ -161,6 +202,7 @@
             color: var(--text-light); width: 100%; padding: 15px;
             border: none; border-radius: 10px; font-size: 1.1rem;
             margin-top: 20px; cursor: pointer;
+            transition: background-color 0.2s;
         }
 
         .btn-close {
@@ -191,7 +233,6 @@
             text-align: center;
             transition: background-color 0.2s;
         }
-        .btn-view-cart:hover { background-color: var(--primary); color: var(--text-light); }
 
         .btn-whatsapp {
             background-color: var(--success);
@@ -209,7 +250,7 @@
             background-color: #333;
             color: #fff;
             text-align: center;
-            border-radius: 2px;
+            border-radius: 5px;
             padding: 16px;
             position: fixed;
             z-index: 1001;
@@ -217,6 +258,7 @@
             bottom: 100px;
             transform: translateX(-50%);
             font-size: 17px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
         }
         #toast.show {
             visibility: visible;
@@ -235,8 +277,21 @@
     <h1>🍔 Burger App 🟣 Azure</h1>
 </header>
 
-<div class="container" id="app">
+<div class="container">
+    <div id="app"></div>
+
+    <div id="clientDataSection">
+        <h2>Datos para el Pedido y Envío</h2>
+        <div class="input-group">
+            <label for="clientName">Tu Nombre Completo *</label>
+            <input type="text" id="clientName" placeholder="Ej: Juan Pérez" required>
+        </div>
+        <div class="input-group">
+            <label for="clientAddress">Dirección de Entrega *</label>
+            <input type="text" id="clientAddress" placeholder="Ej: Calle Falsa 123, Depto 4A" required>
+        </div>
     </div>
+</div>
 
 <div class="bottom-bar" id="cartBar">
     <div style="text-align: center; font-weight: bold; font-size: 1.2rem; color: var(--text-light);">
@@ -280,7 +335,7 @@
     // --- Configuración (Tu número de WhatsApp con formato correcto) ---
     const PHONE_NUMBER = "5493886032588"; 
     
-    // --- Datos de Productos ---
+    // --- Datos de Productos (Mantenidos) ---
     const products = [
         {
             id: 1, name: "Hamburguesa Simple", price: 7000, emoji: "🍔",
@@ -334,7 +389,7 @@
         `).join('');
     }
 
-    // --- Funciones Modales ---
+    // --- Funciones Modales y Carrito (Lógica interna mantenida) ---
     function openCustomizeModal(productId) {
         const product = products.find(p => p.id === productId);
         const ingredientsCopy = product.ingredients.map(i => ({...i}));
@@ -358,7 +413,6 @@
         if(modalId === 'modalCustomize') currentSelection = null;
     }
 
-    // --- Lógica de Ingredientes y Precios ---
     function renderIngredients() {
         const list = document.getElementById('ingredientsList');
         list.innerHTML = currentSelection.ingredients.map((ing, index) => {
@@ -424,10 +478,9 @@
         cart.push({ ...currentSelection, mods: mods });
         updateCartUI();
         closeModal('modalCustomize');
-        showToast("¡Producto añadido!");
+        showToast("✅ ¡Producto añadido!");
     }
     
-    // --- Funciones del Carrito (Borrar/Vaciar) ---
     function openCartModal() {
         if(cart.length === 0) {
             showToast("El carrito está vacío. ¡Añade una Burger!");
@@ -487,7 +540,6 @@
         document.getElementById('cartCount').innerText = cart.length;
     }
     
-    // --- Utilidades ---
     function showToast(message, duration = 3000) {
         const toast = document.getElementById("toast");
         toast.innerText = message;
@@ -496,26 +548,44 @@
     }
 
 
-    // --- Enviar a WhatsApp ---
+    // --- Lógica Final: Enviar a WhatsApp con Datos del Cliente ---
     function sendOrder() {
-        if (cart.length === 0) return showToast("El carrito está vacío. ¡Añade una Burger!");
+        const clientName = document.getElementById('clientName').value.trim();
+        const clientAddress = document.getElementById('clientAddress').value.trim();
+
+        if (cart.length === 0) {
+            return showToast("El carrito está vacío. ¡Añade una Burger!");
+        }
+
+        if (clientName === "" || clientAddress === "") {
+            return showToast("⚠️ Por favor, completa tu Nombre y Dirección.", 4000);
+        }
 
         const waitTime = Math.floor(Math.random() * (40 - 20 + 1) + 20);
-        let message = `*NUEVO PEDIDO WEB (AZURE)* 🟣\n\n`;
+        const grandTotal = cart.reduce((sum, item) => sum + item.finalPrice, 0);
         
+        let message = `*⭐ NUEVO PEDIDO WEB (AZURE) ⭐*\n\n`;
+
+        // Datos del Cliente
+        message += `👤 *CLIENTE:* ${clientName}\n`;
+        message += `🏠 *DIRECCIÓN:* ${clientAddress}\n`;
+        message += `------------------------------------\n`;
+        
+        // Items del Pedido
+        message += `🛒 *DETALLE DEL PEDIDO:*\n`;
         cart.forEach((item, index) => {
-            message += `🔹 *${item.name}* ($${item.finalPrice.toLocaleString()})\n`;
-            if (item.mods.length > 0) message += `   ${item.mods.join('\n   ')}\n`;
-            message += `\n`;
+            message += `\n- *${item.name}* ($${item.finalPrice.toLocaleString()})\n`;
+            if (item.mods.length > 0) message += `    ${item.mods.join('\n    ')}`;
         });
 
-        const grandTotal = cart.reduce((sum, item) => sum + item.finalPrice, 0);
-        message += `💰 *TOTAL A COBRAR: $${grandTotal.toLocaleString()}*\n`;
+        // Totales y Tiempo
+        message += `\n------------------------------------\n`;
+        message += `💰 *TOTAL FINAL: $${grandTotal.toLocaleString()}*\n`;
         message += `⏱️ Espera aprox: ${waitTime} min`;
 
         const whatsappUrl = `https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(message)}`;
         
-        if(confirm(`Total: $${grandTotal.toLocaleString()}. \n¿Abrir WhatsApp para enviar el pedido?`)) {
+        if(confirm(`Pedido de $${grandTotal.toLocaleString()} para ${clientName} en ${clientAddress}. \n\n¿Abrir WhatsApp para enviar?`)) {
             showToast("Preparando WhatsApp...", 3000);
             window.open(whatsappUrl, '_blank');
         }
