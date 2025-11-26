@@ -126,6 +126,36 @@
             border-color: var(--secondary);
             outline: none;
         }
+        
+        /* Estilos para el selector de Envío/Retiro */
+        .option-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .option-selector input[type="radio"] {
+            display: none;
+        }
+
+        .option-selector label {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 8px;
+            border: 2px solid var(--text-dark);
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--text-dark);
+            transition: all 0.3s;
+        }
+
+        .option-selector input[type="radio"]:checked + label {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
+            color: var(--background);
+            box-shadow: 0 0 10px var(--secondary);
+        }
 
         /* --- MODAL GENERAL Y COMPONENTES (MANTENIDOS) --- */
         .modal-overlay {
@@ -271,7 +301,7 @@
         @keyframes fadeout { from {bottom: 100px; opacity: 1;} to {bottom: 0; opacity: 0;} }
     </style>
 </head>
-<body>
+<body onload="updateAddressVisibility()">
 
 <header>
     <h1>🍔 Burger App 🟣 Azure</h1>
@@ -281,12 +311,22 @@
     <div id="app"></div>
 
     <div id="clientDataSection">
-        <h2>Datos para el Pedido y Envío</h2>
+        <h2>Datos para el Pedido</h2>
+        
+        <div class="option-selector">
+            <input type="radio" id="delivery" name="service_type" value="delivery" checked onclick="updateAddressVisibility()">
+            <label for="delivery">🛵 Envío a Domicilio</label>
+            
+            <input type="radio" id="pickup" name="service_type" value="pickup" onclick="updateAddressVisibility()">
+            <label for="pickup">🏃 Retiro en Local</label>
+        </div>
+
         <div class="input-group">
             <label for="clientName">Tu Nombre Completo *</label>
             <input type="text" id="clientName" placeholder="Ej: Juan Pérez" required>
         </div>
-        <div class="input-group">
+
+        <div class="input-group" id="addressInputGroup">
             <label for="clientAddress">Dirección de Entrega *</label>
             <input type="text" id="clientAddress" placeholder="Ej: Calle Falsa 123, Depto 4A" required>
         </div>
@@ -373,7 +413,22 @@
     let cart = []; 
     let currentSelection = null; 
 
-    // --- Inicialización: Pone las hamburguesas en la página ---
+    // --- Funciones para la visibilidad de la Dirección ---
+    function updateAddressVisibility() {
+        const deliveryChecked = document.getElementById('delivery').checked;
+        const addressGroup = document.getElementById('addressInputGroup');
+        const addressInput = document.getElementById('clientAddress');
+        
+        if (deliveryChecked) {
+            addressGroup.style.display = 'block';
+            addressInput.required = true;
+        } else {
+            addressGroup.style.display = 'none';
+            addressInput.required = false;
+        }
+    }
+
+    // --- Inicialización y Lógica de Pedido (Mantenido) ---
     function init() {
         const app = document.getElementById('app');
         app.innerHTML = products.map(p => `
@@ -388,8 +443,17 @@
             </div>
         `).join('');
     }
+    
+    // ... (Mantener todas las funciones: openCustomizeModal, closeModal, renderIngredients, 
+    // changeQty, updateModalTotal, confirmAddToCart, openCartModal, renderCartList, 
+    // deleteFromCart, emptyCart, updateCartUI, showToast) ...
+    
+    // **********************************************
+    //  Nota: Por simplicidad y tamaño, no repetimos 
+    //  las funciones intermedias aquí, pero deben 
+    //  estar en el código final que copies.
+    // **********************************************
 
-    // --- Funciones Modales y Carrito (Lógica interna mantenida) ---
     function openCustomizeModal(productId) {
         const product = products.find(p => p.id === productId);
         const ingredientsCopy = product.ingredients.map(i => ({...i}));
@@ -548,17 +612,23 @@
     }
 
 
-    // --- Lógica Final: Enviar a WhatsApp con Datos del Cliente ---
+    // --- Lógica Final: Enviar a WhatsApp con Datos del Cliente y Servicio ---
     function sendOrder() {
         const clientName = document.getElementById('clientName').value.trim();
         const clientAddress = document.getElementById('clientAddress').value.trim();
+        const serviceType = document.querySelector('input[name="service_type"]:checked').value;
 
         if (cart.length === 0) {
             return showToast("El carrito está vacío. ¡Añade una Burger!");
         }
 
-        if (clientName === "" || clientAddress === "") {
-            return showToast("⚠️ Por favor, completa tu Nombre y Dirección.", 4000);
+        if (clientName === "") {
+            return showToast("⚠️ Por favor, completa tu Nombre.", 4000);
+        }
+        
+        // Validación de Dirección solo si es Envío a Domicilio
+        if (serviceType === 'delivery' && clientAddress === "") {
+            return showToast("⚠️ Por favor, ingresa una Dirección para el Envío.", 4000);
         }
 
         const waitTime = Math.floor(Math.random() * (40 - 20 + 1) + 20);
@@ -566,9 +636,16 @@
         
         let message = `*⭐ NUEVO PEDIDO WEB (AZURE) ⭐*\n\n`;
 
+        // Tipo de Servicio
+        if (serviceType === 'delivery') {
+            message += `🛵 *MODALIDAD:* ENVÍO A DOMICILIO\n`;
+            message += `🏠 *DIRECCIÓN:* ${clientAddress}\n`;
+        } else {
+            message += `🏃 *MODALIDAD:* RETIRO EN LOCAL\n`;
+        }
+
         // Datos del Cliente
         message += `👤 *CLIENTE:* ${clientName}\n`;
-        message += `🏠 *DIRECCIÓN:* ${clientAddress}\n`;
         message += `------------------------------------\n`;
         
         // Items del Pedido
@@ -585,7 +662,15 @@
 
         const whatsappUrl = `https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(message)}`;
         
-        if(confirm(`Pedido de $${grandTotal.toLocaleString()} para ${clientName} en ${clientAddress}. \n\n¿Abrir WhatsApp para enviar?`)) {
+        let confirmationMessage = `Pedido de $${grandTotal.toLocaleString()} para ${clientName}.\n`;
+        if (serviceType === 'delivery') {
+             confirmationMessage += `Envío a: ${clientAddress}.\n`;
+        } else {
+             confirmationMessage += `Modalidad: Retiro en Local.\n`;
+        }
+        confirmationMessage += `\n¿Abrir WhatsApp para enviar el pedido?`;
+
+        if(confirm(confirmationMessage)) {
             showToast("Preparando WhatsApp...", 3000);
             window.open(whatsappUrl, '_blank');
         }
